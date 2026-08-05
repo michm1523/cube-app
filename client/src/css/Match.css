@@ -1,0 +1,10 @@
+#player-canvas,
+#opponent-canvas {
+  display: block;
+}
+
+.match-container {
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+}
