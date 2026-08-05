@@ -24,9 +24,9 @@ function Lobby({ startMatch }) {
       setPlayerCount(playerCount);
     }
 
-    function onMatchFound() {
+    function onMatchFound(scramble) {
       console.log("match found");
-      startMatch();
+      startMatch(scramble);
     }
 
     socket.on("playerCount", onPlayerCount);

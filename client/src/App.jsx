@@ -6,6 +6,7 @@ import Match from "./components/Match";
 
 function App() {
   const [gameState, setGameState] = useState("lobby");
+  const [scramble, setScramble] = useState(null);
 
   useEffect(() => {
     socket.connect();
@@ -16,9 +17,16 @@ function App() {
   }, []);
 
   if (gameState === "lobby") {
-    return <Lobby startMatch={() => setGameState("match")}></Lobby>;
+    return (
+      <Lobby
+        startMatch={(scramble) => {
+          setScramble(scramble);
+          setGameState("match");
+        }}
+      ></Lobby>
+    );
   } else if (gameState === "match") {
-    return <Match></Match>;
+    return <Match scramble={scramble}></Match>;
   }
 }
 

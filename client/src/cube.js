@@ -447,12 +447,6 @@ class Cube {
   }
 
   yMove() {
-    [this.fFace, this.lFace, this.bFace, this.rFace] = [
-      this.rFace,
-      this.fFace,
-      this.lFace,
-      this.bFace,
-    ];
     [
       this.fFace[0].material,
       this.fFace[1].material,
@@ -917,11 +911,82 @@ class Cube {
 
     return true;
   }
+
+  scrambleCube(scramble) {
+    this.resetCube();
+    for (const move of scramble) {
+      switch (move) {
+        case "r":
+          this.rMove();
+          break;
+        case "r'":
+          this.rPrimeMove();
+          break;
+        case "r2":
+          this.rMove();
+          this.rMove();
+          break;
+        case "l":
+          this.lMove();
+          break;
+        case "l'":
+          this.lPrimeMove();
+          break;
+        case "l2":
+          this.lMove();
+          this.lMove();
+          break;
+        case "u":
+          this.uMove();
+          break;
+        case "u'":
+          this.uPrimeMove();
+          break;
+        case "u2":
+          this.uMove();
+          this.uMove();
+          break;
+        case "d":
+          this.dMove();
+          break;
+        case "d'":
+          this.dPrimeMove();
+          break;
+        case "d2":
+          this.dMove();
+          this.dMove();
+          break;
+        case "f":
+          this.fMove();
+          break;
+        case "f'":
+          this.fPrimeMove();
+          break;
+        case "f2":
+          this.fMove();
+          this.fMove();
+          break;
+        case "b":
+          this.bMove();
+          break;
+        case "b'":
+          this.bPrimeMove();
+          break;
+        case "b2":
+          this.bMove();
+          this.bMove();
+          break;
+        default:
+          console.log(move);
+          break;
+      }
+    }
+  }
 }
 
 let TPS = 20;
 
-function animate(delta, currentAnimations, cameraGroup, cube) {
+function animate(delta, currentAnimations, cameraGroup, cube, invertRotation) {
   const finishedAnimations = [];
   for (let i = 0; i < currentAnimations.length; i++) {
     const animation = currentAnimations[i];
@@ -971,9 +1036,11 @@ function animate(delta, currentAnimations, cameraGroup, cube) {
       }
     } else if (animation.face == "x") {
       if (animation.direction == "cw") {
-        cameraGroup.rotation.x += THREE.MathUtils.degToRad(rotation);
+        cameraGroup.rotation.x +=
+          THREE.MathUtils.degToRad(rotation) * invertRotation;
       } else {
-        cameraGroup.rotation.x -= THREE.MathUtils.degToRad(rotation);
+        cameraGroup.rotation.x -=
+          THREE.MathUtils.degToRad(rotation) * invertRotation;
       }
     } else if (animation.face == "y") {
       if (animation.direction == "cw") {
@@ -983,9 +1050,11 @@ function animate(delta, currentAnimations, cameraGroup, cube) {
       }
     } else if (animation.face == "z") {
       if (animation.direction == "cw") {
-        cameraGroup.rotation.z += THREE.MathUtils.degToRad(rotation);
+        cameraGroup.rotation.z +=
+          THREE.MathUtils.degToRad(rotation) * invertRotation;
       } else {
-        cameraGroup.rotation.z -= THREE.MathUtils.degToRad(rotation);
+        cameraGroup.rotation.z -=
+          THREE.MathUtils.degToRad(rotation) * invertRotation;
       }
     }
 
@@ -1014,4 +1083,274 @@ function animate(delta, currentAnimations, cameraGroup, cube) {
   currentAnimations.push(...newAnimations);
 }
 
-export { Cube, animate, SIZE };
+function processMove(key, cube, moveQueue) {
+  if (key == "y" || key == "t") {
+    moveQueue.push({
+      face: "x",
+      direction: "cw",
+      remainingRotation: 90,
+      moveFunc: cube.xMove.bind(cube),
+      axis: "x",
+    });
+  } else if (key == "b" || key == "n") {
+    moveQueue.push({
+      face: "x",
+      direction: "ccw",
+      remainingRotation: 90,
+      moveFunc: cube.xPrimeMove.bind(cube),
+      axis: "x",
+    });
+  } else if (key == ";") {
+    moveQueue.push({
+      face: "y",
+      direction: "cw",
+      remainingRotation: 90,
+      moveFunc: cube.yMove.bind(cube),
+      axis: "y",
+    });
+  } else if (key == "a") {
+    moveQueue.push({
+      face: "y",
+      direction: "ccw",
+      remainingRotation: 90,
+      moveFunc: cube.yPrimeMove.bind(cube),
+      axis: "y",
+    });
+  } else if (key == "p") {
+    moveQueue.push({
+      face: "z",
+      direction: "cw",
+      remainingRotation: 90,
+      moveFunc: cube.zMove.bind(cube),
+      axis: "z",
+    });
+  } else if (key == "q") {
+    moveQueue.push({
+      face: "z",
+      direction: "ccw",
+      remainingRotation: 90,
+      moveFunc: cube.zPrimeMove.bind(cube),
+      axis: "z",
+    });
+  } else if (key == "i") {
+    moveQueue.push({
+      face: "r",
+      direction: "cw",
+      remainingRotation: 90,
+      moveFunc: cube.rMove.bind(cube),
+      axis: "x",
+    });
+  } else if (key == "k") {
+    moveQueue.push({
+      face: "r",
+      direction: "ccw",
+      remainingRotation: 90,
+      moveFunc: cube.rPrimeMove.bind(cube),
+      axis: "x",
+    });
+  } else if (key == "e") {
+    moveQueue.push({
+      face: "l",
+      direction: "ccw",
+      remainingRotation: 90,
+      moveFunc: cube.lPrimeMove.bind(cube),
+      axis: "x",
+    });
+  } else if (key == "d") {
+    moveQueue.push({
+      face: "l",
+      direction: "cw",
+      remainingRotation: 90,
+      moveFunc: cube.lMove.bind(cube),
+      axis: "x",
+    });
+  } else if (key == "j") {
+    moveQueue.push({
+      face: "u",
+      direction: "cw",
+      remainingRotation: 90,
+      moveFunc: cube.uMove.bind(cube),
+      axis: "y",
+    });
+  } else if (key == "f") {
+    moveQueue.push({
+      face: "u",
+      direction: "ccw",
+      remainingRotation: 90,
+      moveFunc: cube.uPrimeMove.bind(cube),
+      axis: "y",
+    });
+  } else if (key == "s") {
+    moveQueue.push({
+      face: "d",
+      direction: "cw",
+      remainingRotation: 90,
+      moveFunc: cube.dMove.bind(cube),
+      axis: "y",
+    });
+  } else if (key == "l") {
+    moveQueue.push({
+      face: "d",
+      direction: "ccw",
+      remainingRotation: 90,
+      moveFunc: cube.dPrimeMove.bind(cube),
+      axis: "y",
+    });
+  } else if (key == "h") {
+    moveQueue.push({
+      face: "f",
+      direction: "cw",
+      remainingRotation: 90,
+      moveFunc: cube.fMove.bind(cube),
+      axis: "z",
+    });
+  } else if (key == "g") {
+    moveQueue.push({
+      face: "f",
+      direction: "ccw",
+      remainingRotation: 90,
+      moveFunc: cube.fPrimeMove.bind(cube),
+      axis: "z",
+    });
+  } else if (key == "w") {
+    moveQueue.push({
+      face: "b",
+      direction: "cw",
+      remainingRotation: 90,
+      moveFunc: cube.bMove.bind(cube),
+      axis: "z",
+    });
+  } else if (key == "o") {
+    moveQueue.push({
+      face: "b",
+      direction: "ccw",
+      remainingRotation: 90,
+      moveFunc: cube.bPrimeMove.bind(cube),
+      axis: "z",
+    });
+  } else if (key == "5" || key == "6") {
+    moveQueue.push({
+      face: "m",
+      direction: "cw",
+      remainingRotation: 90,
+      moveFunc: cube.mMove.bind(cube),
+      axis: "x",
+    });
+  } else if (key == "x" || key == ".") {
+    moveQueue.push({
+      face: "m",
+      direction: "ccw",
+      remainingRotation: 90,
+      moveFunc: cube.mPrimeMove.bind(cube),
+      axis: "x",
+    });
+  }
+}
+
+function updateMoveQueue(moveQueue, animations, cube, scene) {
+  while (moveQueue.length > 0) {
+    let canAddMove = true;
+    let moveCancel = false;
+
+    for (const animation of animations) {
+      if (
+        animation.face == moveQueue[0].face &&
+        animation.direction != moveQueue[0].direction
+      ) {
+        const newMove = moveQueue.shift();
+        const newAnimation = {
+          ...newMove,
+          layer: animation.layer,
+          remainingRotation: 90 - animation.remainingRotation,
+          moveFunc: () => {
+            animation.moveFunc();
+            newMove.moveFunc();
+          },
+        };
+        animations.splice(animations.indexOf(animation), 1);
+        animations.push(newAnimation);
+        moveCancel = true;
+        break;
+      } else if (
+        animation.axis != moveQueue[0].axis ||
+        animation.face == moveQueue[0].face
+      ) {
+        canAddMove = false;
+        break;
+      }
+    }
+
+    if (moveCancel) {
+      continue;
+    }
+
+    if (!canAddMove) {
+      break;
+    }
+
+    const nextMove = moveQueue.shift();
+    const layer = new THREE.Group();
+    if (nextMove.face == "r") {
+      for (const face of cube.faces) {
+        for (const tile of face) {
+          if (tile.position.x >= SIZE) {
+            layer.add(tile);
+          }
+        }
+      }
+    } else if (nextMove.face == "l") {
+      for (const face of cube.faces) {
+        for (const tile of face) {
+          if (tile.position.x <= -SIZE) {
+            layer.add(tile);
+          }
+        }
+      }
+    } else if (nextMove.face == "u") {
+      for (const face of cube.faces) {
+        for (const tile of face) {
+          if (tile.position.y >= SIZE) {
+            layer.add(tile);
+          }
+        }
+      }
+    } else if (nextMove.face == "d") {
+      for (const face of cube.faces) {
+        for (const tile of face) {
+          if (tile.position.y <= -SIZE) {
+            layer.add(tile);
+          }
+        }
+      }
+    } else if (nextMove.face == "f") {
+      for (const face of cube.faces) {
+        for (const tile of face) {
+          if (tile.position.z >= SIZE) {
+            layer.add(tile);
+          }
+        }
+      }
+    } else if (nextMove.face == "b") {
+      for (const face of cube.faces) {
+        for (const tile of face) {
+          if (tile.position.z <= -SIZE) {
+            layer.add(tile);
+          }
+        }
+      }
+    } else if (nextMove.face == "m") {
+      for (const face of cube.faces) {
+        for (const tile of face) {
+          if (tile.position.x == 0) {
+            layer.add(tile);
+          }
+        }
+      }
+    }
+
+    scene.add(layer);
+    animations.push({ ...nextMove, layer: layer });
+  }
+}
+
+export { Cube, animate, SIZE, processMove, updateMoveQueue };
