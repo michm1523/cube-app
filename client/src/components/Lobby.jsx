@@ -6,19 +6,21 @@ function Lobby({ startMatch }) {
   const [playerCount, setPlayerCount] = useState(0);
   const [queueState, setQueueState] = useState("idle");
 
-  async function getPlayerCount() {
-    try {
-      const { count } = await fetch(
-        `${window.location.origin}/api/player-count`,
-      );
-      setPlayerCount(count);
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
   useEffect(() => {
-    getPlayerCount();
+    // async function getPlayerCount() {
+    //   try {
+    //     const response = await fetch(
+    //       `${window.location.origin}/api/player-count`,
+    //     );
+    //     const { count } = await response.json();
+    //     setPlayerCount(count);
+    //     console.log(count);
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // }
+
+    // getPlayerCount();
 
     function onPlayerCount(playerCount) {
       setPlayerCount(playerCount);
@@ -33,6 +35,8 @@ function Lobby({ startMatch }) {
 
     socket.on("match found", onMatchFound);
 
+    socket.emit("update player count");
+
     return () => {
       socket.off("playerCount", onPlayerCount);
 
@@ -42,7 +46,7 @@ function Lobby({ startMatch }) {
 
   return (
     <>
-      <h1>This is the lobby, players online is {playerCount}</h1>
+      <h1>This is the lobby, players online is {playerCount} </h1>
       {queueState === "idle" ? (
         <button
           onClick={() => {

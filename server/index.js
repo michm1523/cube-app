@@ -38,6 +38,25 @@ io.on("connection", (socket) => {
     const room = Array.from(socket.rooms).find((r) => r !== socket.id);
     socket.to(room).emit("opponent move", key);
   });
+
+  socket.on("solved", (time) => {
+    const room = Array.from(socket.rooms).find((r) => r !== socket.id);
+    socket.to(room).emit("opponent done", time);
+  });
+
+  socket.on("match over", () => {
+    const room = Array.from(socket.rooms).find((r) => r !== socket.id);
+    io.to(room).emit("match over");
+  });
+
+  socket.on("leave match", () => {
+    const room = Array.from(socket.rooms).find((r) => r !== socket.id);
+    socket.leave(room);
+  });
+
+  socket.on("update player count", () => {
+    io.emit("playerCount", io.engine.clientsCount);
+  });
 });
 
 app.use(express.static(path.join(path.dirname(__filename), "../client/dist")));
@@ -48,9 +67,10 @@ app.get("/", (req, res) => {
   );
 });
 
-app.get("/api/player-count", (req, res) => {
-  res.send(io.engine.clientsCount);
-});
+// app.get("/api/player-count", (req, res) => {
+//   console.log(io.engine.clientsCount);
+//   res.json({ count: io.engine.clientsCount });
+// });
 
 server.listen(3000, () => {
   console.log("listening on 3000");

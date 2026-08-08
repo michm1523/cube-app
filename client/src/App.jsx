@@ -3,10 +3,10 @@ import { useState, useEffect } from "react";
 import { socket } from "./socket";
 import Lobby from "./components/Lobby";
 import Match from "./components/Match";
+import MatchOverview from "./components/MatchOverview";
 
 function App() {
-  const [gameState, setGameState] = useState("lobby");
-  const [scramble, setScramble] = useState(null);
+  const [gameState, setGameState] = useState({ type: "lobby" });
 
   useEffect(() => {
     socket.connect();
@@ -16,17 +16,31 @@ function App() {
     };
   }, []);
 
-  if (gameState === "lobby") {
+  if (gameState.type === "lobby") {
     return (
       <Lobby
         startMatch={(scramble) => {
-          setScramble(scramble);
-          setGameState("match");
+          setGameState({ type: "match", scramble });
         }}
       ></Lobby>
     );
-  } else if (gameState === "match") {
-    return <Match scramble={scramble}></Match>;
+  } else if (gameState.type === "match") {
+    return (
+      <Match
+        scramble={gameState.scramble}
+        onMatchOver={(playerTime, opponentTime) => {
+          setGameState({ type: "match overview", playerTime, opponentTime });
+        }}
+      ></Match>
+    );
+  } else if (gameState.type === "match overview") {
+    return (
+      <MatchOverview
+        back={() => setGameState({ type: "lobby" })}
+        playerTime={gameState.playerTime}
+        opponentTime={gameState.opponentTime}
+      />
+    );
   }
 }
 

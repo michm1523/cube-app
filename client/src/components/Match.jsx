@@ -4,7 +4,7 @@ import { Cube, animate, processMove, updateMoveQueue } from "../cube";
 import { socket } from "../socket";
 import * as THREE from "three";
 
-function Match({ scramble }) {
+function Match({ scramble, onMatchOver }) {
   const playerCanvasRef = useRef(null);
   const opponentCanvasRef = useRef(null);
   const timerRef = useRef(null);
@@ -68,6 +68,8 @@ function Match({ scramble }) {
     let rendering = true;
 
     let matchState = "inspecting";
+    let opponentTime = null;
+    let playerTime = null;
 
     function renderLoop() {
       if (!rendering) {
@@ -91,14 +93,16 @@ function Match({ scramble }) {
         opponentScene,
       );
 
-      // socket.emit("player animations", playerAnimations);
       animate(delta, playerAnimations, playerCameraGroup, playerCube, 1);
       animate(delta, opponentAnimations, opponentCameraGroup, opponentCube, -1);
 
       playerRenderer.render(playerScene, playerCamera);
       opponentRenderer.render(opponentScene, opponentCamera);
 
-      if (clock.getElapsedTime() - startingTime >= 15) {
+      if (
+        clock.getElapsedTime() - startingTime >= 15 &&
+        matchState == "inspecting"
+      ) {
         matchState = "solving";
       }
 
@@ -111,6 +115,25 @@ function Match({ scramble }) {
           startingTime -
           15
         ).toFixed(1);
+      } else if (matchState == "solved") {
+        timerRef.current.textContent = `${playerTime} - ${(
+          clock.getElapsedTime() -
+          startingTime -
+          15
+        ).toFixed(1)}`;
+      }
+
+      if (
+        playerAnimations.length == 0 &&
+        playerCube.isSolved() &&
+        matchState == "solving"
+      ) {
+        playerMoveQueue = [];
+        console.log(matchState);
+        playerTime = (clock.getElapsedTime() - startingTime - 15).toFixed(2);
+        matchState = "solved";
+        socket.emit("solved", playerTime);
+        console.log(matchState);
       }
 
       window.requestAnimationFrame(renderLoop);
@@ -135,13 +158,31 @@ function Match({ scramble }) {
 
     socket.on("opponent move", onOpponentMove);
 
+    socket.on("opponent done", onOpponentDone);
+
+    socket.on("match over", recieveMatchOver);
+
+    function recieveMatchOver() {
+      onMatchOver(playerTime, opponentTime);
+      socket.emit("leave match");
+    }
+
     function onOpponentMove(key) {
       processMove(key, opponentCube, opponentMoveQueue);
+    }
+
+    function onOpponentDone(time) {
+      opponentTime = time;
+      if (matchState == "solved") {
+        socket.emit("match over");
+      }
     }
 
     return () => {
       document.removeEventListener("keydown", handleKeyPress);
       socket.off("opponent move", onOpponentMove);
+      socket.off("opponent done", onOpponentDone);
+      socket.off("match over", recieveMatchOver);
       rendering = false;
     };
   });
