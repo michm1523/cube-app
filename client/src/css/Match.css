@@ -7,7 +7,16 @@
   flex-direction: column;
   display: flex;
   align-items: center;
+  justify-content: center;
+  padding-top: 36px;
 }
 
 .match-timer {
+  font-size: 40px;
+}
+
+.match-timer-container {
+  padding: 24px;
+  display: flex;
+  justify-content: center;
 }

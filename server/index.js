@@ -57,6 +57,10 @@ io.on("connection", (socket) => {
   socket.on("update player count", () => {
     io.emit("playerCount", io.engine.clientsCount);
   });
+
+  socket.on("cancel queue", () => {
+    matchingPlayer = null;
+  });
 });
 
 app.use(express.static(path.join(path.dirname(__filename), "../client/dist")));
@@ -72,6 +76,6 @@ app.get("/", (req, res) => {
 //   res.json({ count: io.engine.clientsCount });
 // });
 
-server.listen(3000, () => {
+server.listen(3000, "0.0.0.0", () => {
   console.log("listening on 3000");
 });

@@ -28,8 +28,19 @@ function App() {
     return (
       <Match
         scramble={gameState.scramble}
-        onMatchOver={(playerTime, opponentTime) => {
-          setGameState({ type: "match overview", playerTime, opponentTime });
+        onMatchOver={(
+          playerTime,
+          opponentTime,
+          playerMoveCount,
+          opponentMoveCount,
+        ) => {
+          setGameState({
+            type: "match overview",
+            playerTime,
+            opponentTime,
+            playerMoveCount,
+            opponentMoveCount,
+          });
         }}
       ></Match>
     );
@@ -39,6 +50,8 @@ function App() {
         back={() => setGameState({ type: "lobby" })}
         playerTime={gameState.playerTime}
         opponentTime={gameState.opponentTime}
+        playerMoveCount={gameState.playerMoveCount}
+        opponentMoveCount={gameState.opponentMoveCount}
       />
     );
   }

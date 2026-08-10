@@ -16,20 +16,20 @@ function Match({ scramble, onMatchOver }) {
     opponentCube.scrambleCube(scramble);
 
     const playerScene = new THREE.Scene();
-    const playerCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+    const playerCamera = new THREE.PerspectiveCamera(65, 1, 0.1, 1000);
     const opponentScene = new THREE.Scene();
-    const opponentCamera = new THREE.PerspectiveCamera(75, 5, 0.1, 1000);
+    const opponentCamera = new THREE.PerspectiveCamera(75, 4, 0.1, 1000);
 
     const playerCameraGroup = new THREE.Group();
     const opponentCameraGroup = new THREE.Group();
 
     playerCamera.position.z = 32;
     playerCamera.position.y = 30;
-    opponentCamera.position.z = -24;
-    opponentCamera.position.y = 20;
+    opponentCamera.position.z = -25;
+    opponentCamera.position.y = 17;
 
     playerCamera.lookAt(0, 0, 0);
-    opponentCamera.lookAt(0, 3, 0);
+    opponentCamera.lookAt(0, 0, 0);
 
     playerCameraGroup.add(playerCamera);
     opponentCameraGroup.add(opponentCamera);
@@ -51,7 +51,7 @@ function Match({ scramble, onMatchOver }) {
     });
 
     playerRenderer.setSize(500, 500);
-    opponentRenderer.setSize(500, 100);
+    opponentRenderer.setSize(500, 125);
 
     // playerRenderer.render(playerScene, playerCamera);
     // opponentRenderer.render(opponentScene, opponentCamera);
@@ -70,6 +70,8 @@ function Match({ scramble, onMatchOver }) {
     let matchState = "inspecting";
     let opponentTime = null;
     let playerTime = null;
+    let playerMoveCount = 0;
+    let opponentMoveCount = null;
 
     function renderLoop() {
       if (!rendering) {
@@ -93,8 +95,25 @@ function Match({ scramble, onMatchOver }) {
         opponentScene,
       );
 
-      animate(delta, playerAnimations, playerCameraGroup, playerCube, 1);
-      animate(delta, opponentAnimations, opponentCameraGroup, opponentCube, -1);
+      const playerMoves = animate(
+        delta,
+        playerAnimations,
+        playerCameraGroup,
+        playerCube,
+        1,
+      );
+      const opponentMoves = animate(
+        delta,
+        opponentAnimations,
+        opponentCameraGroup,
+        opponentCube,
+        -1,
+      );
+
+      if (matchState == "solving") {
+        playerMoveCount += playerMoves;
+        opponentMoveCount += opponentMoves;
+      }
 
       playerRenderer.render(playerScene, playerCamera);
       opponentRenderer.render(opponentScene, opponentCamera);
@@ -115,12 +134,14 @@ function Match({ scramble, onMatchOver }) {
           startingTime -
           15
         ).toFixed(1);
-      } else if (matchState == "solved") {
+      } else if (matchState == "solved" && !opponentTime) {
         timerRef.current.textContent = `${playerTime} - ${(
           clock.getElapsedTime() -
           startingTime -
           15
         ).toFixed(1)}`;
+      } else if (matchState == "solved" && opponentTime) {
+        timerRef.current.textContent = `${playerTime} - ${opponentTime}`;
       }
 
       if (
@@ -163,7 +184,15 @@ function Match({ scramble, onMatchOver }) {
     socket.on("match over", recieveMatchOver);
 
     function recieveMatchOver() {
-      onMatchOver(playerTime, opponentTime);
+      setTimeout(() => {
+        onMatchOver(
+          playerTime,
+          opponentTime,
+          playerMoveCount,
+          opponentMoveCount,
+        );
+      }, 1000);
+
       socket.emit("leave match");
     }
 
@@ -189,15 +218,14 @@ function Match({ scramble, onMatchOver }) {
 
   return (
     <>
-      <h1>Hi you're in a match</h1>
       <div className="match-container">
         <canvas id="opponent-canvas" ref={opponentCanvasRef}></canvas>
         <canvas id="player-canvas" ref={playerCanvasRef}></canvas>
-      </div>
-      <div>
-        <p class="match-timer" ref={timerRef}>
-          11
-        </p>
+        <div className="match-timer-container">
+          <p class="match-timer" ref={timerRef}>
+            11
+          </p>
+        </div>
       </div>
     </>
   );

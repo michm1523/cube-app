@@ -4,7 +4,8 @@ import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 
 const SIZE = 8;
-const GAP = 1;
+const GAP = 1.25;
+const TPS = 1000;
 
 const whiteMaterial = new THREE.MeshBasicMaterial({
   color: "white",
@@ -984,8 +985,6 @@ class Cube {
   }
 }
 
-let TPS = 20;
-
 function animate(delta, currentAnimations, cameraGroup, cube, invertRotation) {
   const finishedAnimations = [];
   for (let i = 0; i < currentAnimations.length; i++) {
@@ -1081,6 +1080,8 @@ function animate(delta, currentAnimations, cameraGroup, cube, invertRotation) {
 
   currentAnimations.length = 0;
   currentAnimations.push(...newAnimations);
+
+  return finishedAnimations.length;
 }
 
 function processMove(key, cube, moveQueue) {

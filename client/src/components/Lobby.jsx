@@ -46,25 +46,31 @@ function Lobby({ startMatch }) {
 
   return (
     <>
-      <h1>This is the lobby, players online is {playerCount} </h1>
-      {queueState === "idle" ? (
-        <button
-          onClick={() => {
-            setQueueState("queueing");
-            socket.emit("queue");
-          }}
-        >
-          Queue
-        </button>
-      ) : (
-        <button
-          onClick={() => {
-            setQueueState("idle");
-          }}
-        >
-          Cancel queue
-        </button>
-      )}
+      <div className="lobby-container">
+        <h1 className="lobby-title">Virtual Cube Race</h1>
+        {queueState === "idle" ? (
+          <button
+            onClick={() => {
+              setQueueState("queueing");
+              socket.emit("queue");
+            }}
+            className="lobby-btn"
+          >
+            Play
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              setQueueState("idle");
+              socket.emit("cancel queue");
+            }}
+            className="lobby-btn"
+          >
+            Cancel queue
+          </button>
+        )}
+        <p>{playerCount} online</p>
+      </div>
     </>
   );
 }

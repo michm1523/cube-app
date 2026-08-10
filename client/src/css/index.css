@@ -8,4 +8,10 @@
 
 body {
   font-family: "Manrope", sans-serif;
+  background-color: black;
+  color: white;
+}
+
+button {
+  cursor: pointer;
 }
