@@ -50,11 +50,19 @@ function Match({ scramble, onMatchOver }) {
       antialias: true,
     });
 
-    playerRenderer.setSize(500, 500);
-    opponentRenderer.setSize(500, 125);
+    playerRenderer.setSize(
+      (window.innerHeight / 780) * 500,
+      (window.innerHeight / 780) * 500,
+    );
+    opponentRenderer.setSize(
+      (window.innerHeight / 780) * 500,
+      (window.innerHeight / 780) * 125,
+    );
 
     // playerRenderer.render(playerScene, playerCamera);
     // opponentRenderer.render(opponentScene, opponentCamera);
+
+    console.log(window.innerHeight);
 
     const clock = new THREE.Clock();
     let previousTime = clock.getElapsedTime();
@@ -110,7 +118,7 @@ function Match({ scramble, onMatchOver }) {
         -1,
       );
 
-      if (matchState == "solving") {
+      if (matchState == "solving" || matchState == "solved") {
         playerMoveCount += playerMoves;
         opponentMoveCount += opponentMoves;
       }
@@ -175,7 +183,20 @@ function Match({ scramble, onMatchOver }) {
       }
     }
 
+    function onResize(e) {
+      playerRenderer.setSize(
+        (window.innerHeight / 780) * 500,
+        (window.innerHeight / 780) * 500,
+      );
+      opponentRenderer.setSize(
+        (window.innerHeight / 780) * 500,
+        (window.innerHeight / 780) * 125,
+      );
+    }
+
     document.addEventListener("keydown", handleKeyPress);
+
+    window.addEventListener("resize", onResize);
 
     socket.on("opponent move", onOpponentMove);
 
@@ -209,6 +230,7 @@ function Match({ scramble, onMatchOver }) {
 
     return () => {
       document.removeEventListener("keydown", handleKeyPress);
+      window.removeEventListener("resize", onResize);
       socket.off("opponent move", onOpponentMove);
       socket.off("opponent done", onOpponentDone);
       socket.off("match over", recieveMatchOver);

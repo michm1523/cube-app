@@ -5,7 +5,7 @@ import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 
 const SIZE = 8;
 const GAP = 1.25;
-const TPS = 1000;
+const TPS = 1;
 
 const whiteMaterial = new THREE.MeshBasicMaterial({
   color: "white",
@@ -1291,62 +1291,52 @@ function updateMoveQueue(moveQueue, animations, cube, scene) {
 
     const nextMove = moveQueue.shift();
     const layer = new THREE.Group();
+    const layerArr = [];
     if (nextMove.face == "r") {
-      for (const face of cube.faces) {
-        for (const tile of face) {
-          if (tile.position.x >= SIZE) {
-            layer.add(tile);
-          }
+      for (const piece of cube.cube.children) {
+        if (piece.position.x >= SIZE) {
+          layerArr.push(piece);
         }
       }
     } else if (nextMove.face == "l") {
-      for (const face of cube.faces) {
-        for (const tile of face) {
-          if (tile.position.x <= -SIZE) {
-            layer.add(tile);
-          }
+      for (const piece of cube.cube.children) {
+        if (piece.position.x <= -SIZE) {
+          layerArr.push(piece);
         }
       }
     } else if (nextMove.face == "u") {
-      for (const face of cube.faces) {
-        for (const tile of face) {
-          if (tile.position.y >= SIZE) {
-            layer.add(tile);
-          }
+      for (const piece of cube.cube.children) {
+        if (piece.position.y >= SIZE) {
+          layerArr.push(piece);
         }
       }
     } else if (nextMove.face == "d") {
-      for (const face of cube.faces) {
-        for (const tile of face) {
-          if (tile.position.y <= -SIZE) {
-            layer.add(tile);
-          }
+      for (const piece of cube.cube.children) {
+        if (piece.position.y <= -SIZE) {
+          layerArr.push(piece);
         }
       }
     } else if (nextMove.face == "f") {
-      for (const face of cube.faces) {
-        for (const tile of face) {
-          if (tile.position.z >= SIZE) {
-            layer.add(tile);
-          }
+      for (const piece of cube.cube.children) {
+        if (piece.position.z >= SIZE) {
+          layerArr.push(piece);
         }
       }
     } else if (nextMove.face == "b") {
-      for (const face of cube.faces) {
-        for (const tile of face) {
-          if (tile.position.z <= -SIZE) {
-            layer.add(tile);
-          }
+      for (const piece of cube.cube.children) {
+        if (piece.position.z <= -SIZE) {
+          layerArr.push(piece);
         }
       }
     } else if (nextMove.face == "m") {
-      for (const face of cube.faces) {
-        for (const tile of face) {
-          if (tile.position.x == 0) {
-            layer.add(tile);
-          }
+      for (const piece of cube.cube.children) {
+        if (piece.position.x == SIZE) {
+          layerArr.push(piece);
         }
       }
+    }
+    for (const piece of layerArr) {
+      layer.add(piece);
     }
 
     scene.add(layer);
