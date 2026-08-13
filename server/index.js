@@ -20,15 +20,17 @@ io.on("connection", (socket) => {
   });
 
   socket.on("queue", async () => {
-    if (matchingPlayer) {
-      socket.join(`${matchingPlayer.id}${socket.id}`);
-      matchingPlayer.join(`${matchingPlayer.id}${socket.id}`);
+    if (matchingPlayer && matchingPlayer.id != socket.id) {
+      const room = `${matchingPlayer.id}${socket.id}`;
+      socket.join(room);
+      matchingPlayer.join(room);
+
+      matchingPlayer = null;
 
       let scramble = await randomScrambleForEvent("333");
       scramble = scramble.toString().toLowerCase().split(" ");
 
-      io.to(`${matchingPlayer.id}${socket.id}`).emit("match found", scramble);
-      matchingPlayer = null;
+      io.to(room).emit("match found", scramble);
     } else {
       matchingPlayer = socket;
     }
@@ -46,7 +48,7 @@ io.on("connection", (socket) => {
 
   socket.on("match over", () => {
     const room = Array.from(socket.rooms).find((r) => r !== socket.id);
-    io.to(room).emit("match over");
+    if (room) io.to(room).emit("match over");
   });
 
   socket.on("leave match", () => {
@@ -70,11 +72,6 @@ app.get("/", (req, res) => {
     path.join(path.dirname(__filename), "../client/dist/index.html"),
   );
 });
-
-// app.get("/api/player-count", (req, res) => {
-//   console.log(io.engine.clientsCount);
-//   res.json({ count: io.engine.clientsCount });
-// });
 
 server.listen(3000, "0.0.0.0", () => {
   console.log("listening on 3000");
