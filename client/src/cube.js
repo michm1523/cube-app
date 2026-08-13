@@ -5,7 +5,7 @@ import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 
 const SIZE = 8;
 const GAP = 1.25;
-const TPS = 1;
+const TPS = 10;
 
 const whiteMaterial = new THREE.MeshBasicMaterial({
   color: "white",
@@ -985,76 +985,18 @@ class Cube {
   }
 }
 
-function animate(delta, currentAnimations, cameraGroup, cube, invertRotation) {
+function animate(delta, currentAnimations, cameraGroup, cube) {
   const finishedAnimations = [];
   for (let i = 0; i < currentAnimations.length; i++) {
     const animation = currentAnimations[i];
     const rotation = Math.min(TPS * 90 * delta, animation.remainingRotation);
 
-    if (animation.face == "r") {
-      if (animation.direction == "cw") {
-        animation.layer.rotation.x -= THREE.MathUtils.degToRad(rotation);
-      } else {
-        animation.layer.rotation.x += THREE.MathUtils.degToRad(rotation);
-      }
-    } else if (animation.face == "l") {
-      if (animation.direction == "cw") {
-        animation.layer.rotation.x += THREE.MathUtils.degToRad(rotation);
-      } else {
-        animation.layer.rotation.x -= THREE.MathUtils.degToRad(rotation);
-      }
-    } else if (animation.face == "u") {
-      if (animation.direction == "cw") {
-        animation.layer.rotation.y -= THREE.MathUtils.degToRad(rotation);
-      } else {
-        animation.layer.rotation.y += THREE.MathUtils.degToRad(rotation);
-      }
-    } else if (animation.face == "d") {
-      if (animation.direction == "cw") {
-        animation.layer.rotation.y += THREE.MathUtils.degToRad(rotation);
-      } else {
-        animation.layer.rotation.y -= THREE.MathUtils.degToRad(rotation);
-      }
-    } else if (animation.face == "f") {
-      if (animation.direction == "cw") {
-        animation.layer.rotation.z -= THREE.MathUtils.degToRad(rotation);
-      } else {
-        animation.layer.rotation.z += THREE.MathUtils.degToRad(rotation);
-      }
-    } else if (animation.face == "b") {
-      if (animation.direction == "cw") {
-        animation.layer.rotation.z += THREE.MathUtils.degToRad(rotation);
-      } else {
-        animation.layer.rotation.z -= THREE.MathUtils.degToRad(rotation);
-      }
-    } else if (animation.face == "m") {
-      if (animation.direction == "cw") {
-        animation.layer.rotation.x += THREE.MathUtils.degToRad(rotation);
-      } else {
-        animation.layer.rotation.x -= THREE.MathUtils.degToRad(rotation);
-      }
-    } else if (animation.face == "x") {
-      if (animation.direction == "cw") {
-        cameraGroup.rotation.x +=
-          THREE.MathUtils.degToRad(rotation) * invertRotation;
-      } else {
-        cameraGroup.rotation.x -=
-          THREE.MathUtils.degToRad(rotation) * invertRotation;
-      }
-    } else if (animation.face == "y") {
-      if (animation.direction == "cw") {
-        cameraGroup.rotation.y += THREE.MathUtils.degToRad(rotation);
-      } else {
-        cameraGroup.rotation.y -= THREE.MathUtils.degToRad(rotation);
-      }
-    } else if (animation.face == "z") {
-      if (animation.direction == "cw") {
-        cameraGroup.rotation.z +=
-          THREE.MathUtils.degToRad(rotation) * invertRotation;
-      } else {
-        cameraGroup.rotation.z -=
-          THREE.MathUtils.degToRad(rotation) * invertRotation;
-      }
+    if (animation.layer.children.length > 0) {
+      animation.layer.rotation[animation.axis] +=
+        animation.direction * THREE.MathUtils.degToRad(rotation);
+    } else {
+      cameraGroup.rotation[animation.axis] -=
+        animation.direction * THREE.MathUtils.degToRad(rotation);
     }
 
     animation.remainingRotation -= rotation;
@@ -1066,9 +1008,7 @@ function animate(delta, currentAnimations, cameraGroup, cube, invertRotation) {
           cube.cube.add(child);
         }
       } else {
-        cameraGroup.rotation.x = 0;
-        cameraGroup.rotation.y = 0;
-        cameraGroup.rotation.z = 0;
+        cameraGroup.rotation[animation.axis] = 0;
       }
       animation.moveFunc();
     }
@@ -1088,7 +1028,7 @@ function processMove(key, cube, moveQueue) {
   if (key == "y" || key == "t") {
     moveQueue.push({
       face: "x",
-      direction: "cw",
+      direction: -1,
       remainingRotation: 90,
       moveFunc: cube.xMove.bind(cube),
       axis: "x",
@@ -1096,7 +1036,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "b" || key == "n") {
     moveQueue.push({
       face: "x",
-      direction: "ccw",
+      direction: 1,
       remainingRotation: 90,
       moveFunc: cube.xPrimeMove.bind(cube),
       axis: "x",
@@ -1104,7 +1044,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == ";") {
     moveQueue.push({
       face: "y",
-      direction: "cw",
+      direction: -1,
       remainingRotation: 90,
       moveFunc: cube.yMove.bind(cube),
       axis: "y",
@@ -1112,7 +1052,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "a") {
     moveQueue.push({
       face: "y",
-      direction: "ccw",
+      direction: 1,
       remainingRotation: 90,
       moveFunc: cube.yPrimeMove.bind(cube),
       axis: "y",
@@ -1120,7 +1060,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "p") {
     moveQueue.push({
       face: "z",
-      direction: "cw",
+      direction: -1,
       remainingRotation: 90,
       moveFunc: cube.zMove.bind(cube),
       axis: "z",
@@ -1128,7 +1068,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "q") {
     moveQueue.push({
       face: "z",
-      direction: "ccw",
+      direction: 1,
       remainingRotation: 90,
       moveFunc: cube.zPrimeMove.bind(cube),
       axis: "z",
@@ -1136,7 +1076,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "i") {
     moveQueue.push({
       face: "r",
-      direction: "cw",
+      direction: -1,
       remainingRotation: 90,
       moveFunc: cube.rMove.bind(cube),
       axis: "x",
@@ -1144,7 +1084,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "k") {
     moveQueue.push({
       face: "r",
-      direction: "ccw",
+      direction: 1,
       remainingRotation: 90,
       moveFunc: cube.rPrimeMove.bind(cube),
       axis: "x",
@@ -1152,7 +1092,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "e") {
     moveQueue.push({
       face: "l",
-      direction: "ccw",
+      direction: -1,
       remainingRotation: 90,
       moveFunc: cube.lPrimeMove.bind(cube),
       axis: "x",
@@ -1160,7 +1100,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "d") {
     moveQueue.push({
       face: "l",
-      direction: "cw",
+      direction: 1,
       remainingRotation: 90,
       moveFunc: cube.lMove.bind(cube),
       axis: "x",
@@ -1168,7 +1108,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "j") {
     moveQueue.push({
       face: "u",
-      direction: "cw",
+      direction: -1,
       remainingRotation: 90,
       moveFunc: cube.uMove.bind(cube),
       axis: "y",
@@ -1176,7 +1116,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "f") {
     moveQueue.push({
       face: "u",
-      direction: "ccw",
+      direction: 1,
       remainingRotation: 90,
       moveFunc: cube.uPrimeMove.bind(cube),
       axis: "y",
@@ -1184,7 +1124,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "s") {
     moveQueue.push({
       face: "d",
-      direction: "cw",
+      direction: 1,
       remainingRotation: 90,
       moveFunc: cube.dMove.bind(cube),
       axis: "y",
@@ -1192,7 +1132,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "l") {
     moveQueue.push({
       face: "d",
-      direction: "ccw",
+      direction: -1,
       remainingRotation: 90,
       moveFunc: cube.dPrimeMove.bind(cube),
       axis: "y",
@@ -1200,7 +1140,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "h") {
     moveQueue.push({
       face: "f",
-      direction: "cw",
+      direction: -1,
       remainingRotation: 90,
       moveFunc: cube.fMove.bind(cube),
       axis: "z",
@@ -1208,7 +1148,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "g") {
     moveQueue.push({
       face: "f",
-      direction: "ccw",
+      direction: 1,
       remainingRotation: 90,
       moveFunc: cube.fPrimeMove.bind(cube),
       axis: "z",
@@ -1216,7 +1156,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "w") {
     moveQueue.push({
       face: "b",
-      direction: "cw",
+      direction: 1,
       remainingRotation: 90,
       moveFunc: cube.bMove.bind(cube),
       axis: "z",
@@ -1224,7 +1164,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "o") {
     moveQueue.push({
       face: "b",
-      direction: "ccw",
+      direction: -1,
       remainingRotation: 90,
       moveFunc: cube.bPrimeMove.bind(cube),
       axis: "z",
@@ -1232,7 +1172,7 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "5" || key == "6") {
     moveQueue.push({
       face: "m",
-      direction: "cw",
+      direction: 1,
       remainingRotation: 90,
       moveFunc: cube.mMove.bind(cube),
       axis: "x",
@@ -1240,10 +1180,106 @@ function processMove(key, cube, moveQueue) {
   } else if (key == "x" || key == ".") {
     moveQueue.push({
       face: "m",
-      direction: "ccw",
+      direction: -1,
       remainingRotation: 90,
       moveFunc: cube.mPrimeMove.bind(cube),
       axis: "x",
+    });
+  } else if (key == "u") {
+    moveQueue.push({
+      face: "rm",
+      direction: -1,
+      remainingRotation: 90,
+      moveFunc: cube.rWideMove.bind(cube),
+      axis: "x",
+    });
+  } else if (key == "m") {
+    moveQueue.push({
+      face: "rm",
+      direction: 1,
+      remainingRotation: 90,
+      moveFunc: cube.rWidePrimeMove.bind(cube),
+      axis: "x",
+    });
+  } else if (key == "r") {
+    moveQueue.push({
+      face: "lm",
+      direction: -1,
+      remainingRotation: 90,
+      moveFunc: cube.lWidePrimeMove.bind(cube),
+      axis: "x",
+    });
+  } else if (key == "v") {
+    moveQueue.push({
+      face: "lm",
+      direction: 1,
+      remainingRotation: 90,
+      moveFunc: cube.lWideMove.bind(cube),
+      axis: "x",
+    });
+  } else if (key == ",") {
+    moveQueue.push({
+      face: "ue",
+      direction: -1,
+      remainingRotation: 90,
+      moveFunc: cube.uWideMove.bind(cube),
+      axis: "y",
+    });
+  } else if (key == "c") {
+    moveQueue.push({
+      face: "ue",
+      direction: 1,
+      remainingRotation: 90,
+      moveFunc: cube.uWidePrimeMove.bind(cube),
+      axis: "y",
+    });
+  } else if (key == "z") {
+    moveQueue.push({
+      face: "de",
+      direction: 1,
+      remainingRotation: 90,
+      moveFunc: cube.dWideMove.bind(cube),
+      axis: "y",
+    });
+  } else if (key == "/") {
+    moveQueue.push({
+      face: "de",
+      direction: -1,
+      remainingRotation: 90,
+      moveFunc: cube.dWidePrimeMove.bind(cube),
+      axis: "y",
+    });
+  } else if (key == "0") {
+    moveQueue.push({
+      face: "s",
+      direction: -1,
+      remainingRotation: 90,
+      moveFunc: cube.sMove.bind(cube),
+      axis: "z",
+    });
+  } else if (key == "1") {
+    moveQueue.push({
+      face: "s",
+      direction: 1,
+      remainingRotation: 90,
+      moveFunc: cube.sPrimeMove.bind(cube),
+      axis: "z",
+    });
+  } else if (key == "2") {
+    moveQueue.push({
+      face: "e",
+      direction: 1,
+      remainingRotation: 90,
+      moveFunc: cube.eMove.bind(cube),
+      axis: "y",
+    });
+  } else if (key == "9") {
+    moveQueue.push({
+      face: "e",
+      direction: -1,
+      remainingRotation: 90,
+      moveFunc: cube.ePrimeMove.bind(cube),
+      axis: "y",
     });
   }
 }
@@ -1271,12 +1307,17 @@ function updateMoveQueue(moveQueue, animations, cube, scene) {
         animations.splice(animations.indexOf(animation), 1);
         animations.push(newAnimation);
         moveCancel = true;
-        break;
-      } else if (
-        animation.axis != moveQueue[0].axis ||
-        animation.face == moveQueue[0].face
-      ) {
+      } else if (animation.axis != moveQueue[0].axis) {
         canAddMove = false;
+      } else {
+        for (const char of moveQueue[0].face) {
+          if (animation.face.includes(char)) {
+            canAddMove = false;
+          }
+        }
+      }
+
+      if (!canAddMove || moveCancel) {
         break;
       }
     }
@@ -1330,11 +1371,48 @@ function updateMoveQueue(moveQueue, animations, cube, scene) {
       }
     } else if (nextMove.face == "m") {
       for (const piece of cube.cube.children) {
-        if (piece.position.x == SIZE) {
+        if (piece.position.x == 0) {
+          layerArr.push(piece);
+        }
+      }
+    } else if (nextMove.face == "rm") {
+      for (const piece of cube.cube.children) {
+        if (piece.position.x >= 0) {
+          layerArr.push(piece);
+        }
+      }
+    } else if (nextMove.face == "lm") {
+      for (const piece of cube.cube.children) {
+        if (piece.position.x <= 0) {
+          layerArr.push(piece);
+        }
+      }
+    } else if (nextMove.face == "ue") {
+      for (const piece of cube.cube.children) {
+        if (piece.position.y >= 0) {
+          layerArr.push(piece);
+        }
+      }
+    } else if (nextMove.face == "de") {
+      for (const piece of cube.cube.children) {
+        if (piece.position.y <= 0) {
+          layerArr.push(piece);
+        }
+      }
+    } else if (nextMove.face == "s") {
+      for (const piece of cube.cube.children) {
+        if (piece.position.z == 0) {
+          layerArr.push(piece);
+        }
+      }
+    } else if (nextMove.face == "e") {
+      for (const piece of cube.cube.children) {
+        if (piece.position.y == 0) {
           layerArr.push(piece);
         }
       }
     }
+
     for (const piece of layerArr) {
       layer.add(piece);
     }
@@ -1344,4 +1422,7 @@ function updateMoveQueue(moveQueue, animations, cube, scene) {
   }
 }
 
-export { Cube, animate, SIZE, processMove, updateMoveQueue };
+const playerCube = new Cube();
+const opponentCube = new Cube();
+
+export { playerCube, opponentCube, animate, processMove, updateMoveQueue };

@@ -1,6 +1,12 @@
 import "../css/Match.css";
 import { useEffect, useRef } from "react";
-import { Cube, animate, processMove, updateMoveQueue } from "../cube";
+import {
+  playerCube,
+  opponentCube,
+  animate,
+  processMove,
+  updateMoveQueue,
+} from "../cube";
 import { socket } from "../socket";
 import * as THREE from "three";
 
@@ -10,8 +16,8 @@ function Match({ scramble, onMatchOver }) {
   const timerRef = useRef(null);
 
   useEffect(() => {
-    const playerCube = new Cube();
-    const opponentCube = new Cube();
+    playerCube.resetCube();
+    opponentCube.resetCube();
     playerCube.scrambleCube(scramble);
     opponentCube.scrambleCube(scramble);
 
@@ -108,14 +114,12 @@ function Match({ scramble, onMatchOver }) {
         playerAnimations,
         playerCameraGroup,
         playerCube,
-        1,
       );
       const opponentMoves = animate(
         delta,
         opponentAnimations,
         opponentCameraGroup,
         opponentCube,
-        -1,
       );
 
       if (matchState == "solving" || matchState == "solved") {
@@ -183,7 +187,7 @@ function Match({ scramble, onMatchOver }) {
       }
     }
 
-    function onResize(e) {
+    function onResize() {
       playerRenderer.setSize(
         (window.innerHeight / 780) * 500,
         (window.innerHeight / 780) * 500,
