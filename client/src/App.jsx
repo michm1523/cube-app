@@ -9,10 +9,17 @@ function App() {
   const [gameState, setGameState] = useState({ type: "lobby" });
 
   useEffect(() => {
+    socket.on("assign id", (id) => {
+      socket.auth.playerId = id;
+    });
+
     socket.connect();
 
     return () => {
       socket.disconnect();
+      socket.off("assign id", (id) => {
+        socket.auth.playerId = id;
+      });
     };
   }, []);
 

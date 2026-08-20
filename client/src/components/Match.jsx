@@ -16,6 +16,7 @@ function Match({ scramble, onMatchOver }) {
   const timerRef = useRef(null);
 
   useEffect(() => {
+    socket.auth.serverOffset = -1;
     playerCube.resetCube();
     opponentCube.resetCube();
     playerCube.scrambleCube(scramble);
@@ -222,14 +223,12 @@ function Match({ scramble, onMatchOver }) {
     }
 
     function onOpponentMove(key) {
+      socket.auth.serverOffset++;
       processMove(key, opponentCube, opponentMoveQueue);
     }
 
     function onOpponentDone(time) {
       opponentTime = time;
-      if (matchState == "solved") {
-        socket.emit("match over");
-      }
     }
 
     return () => {
@@ -240,7 +239,7 @@ function Match({ scramble, onMatchOver }) {
       socket.off("match over", recieveMatchOver);
       rendering = false;
     };
-  });
+  }, []);
 
   return (
     <>

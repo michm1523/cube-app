@@ -1,5 +1,11 @@
 import { io } from "https://cdn.socket.io/4.8.3/socket.io.esm.min.js";
 
-export const socket = io({
+const socket = io({
   autoConnect: false,
+  auth: {
+    serverOffset: -1,
+    playerId: crypto.randomUUID(),
+  },
 });
+
+export { socket };
