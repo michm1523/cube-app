@@ -1,0 +1,12 @@
+.multiplayer {
+  position: relative;
+}
+
+.connection-status {
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  padding: 12px;
+  color: black;
+  background-color: red;
+}

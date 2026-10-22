@@ -6,6 +6,8 @@ const socket = io({
     serverOffset: -1,
     playerId: crypto.randomUUID(),
   },
+  ackTimeout: 5000,
+  retries: 10,
 });
 
 export { socket };

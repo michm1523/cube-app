@@ -86,6 +86,7 @@ function Match({ scramble, onMatchOver }) {
     let opponentTime = null;
     let playerTime = null;
     let playerMoveCount = 0;
+    let clientOffset = 0;
     let opponentMoveCount = null;
 
     function renderLoop() {
@@ -116,16 +117,13 @@ function Match({ scramble, onMatchOver }) {
         playerCameraGroup,
         playerCube,
       );
-      const opponentMoves = animate(
-        delta,
-        opponentAnimations,
-        opponentCameraGroup,
-        opponentCube,
-      );
+
+      if (!opponentCube.isSolved() && opponentAnimations.length > 0) {
+        animate(delta, opponentAnimations, opponentCameraGroup, opponentCube);
+      }
 
       if (matchState == "solving" || matchState == "solved") {
         playerMoveCount += playerMoves;
-        opponentMoveCount += opponentMoves;
       }
 
       playerRenderer.render(playerScene, playerCamera);
@@ -163,11 +161,9 @@ function Match({ scramble, onMatchOver }) {
         matchState == "solving"
       ) {
         playerMoveQueue = [];
-        console.log(matchState);
         playerTime = (clock.getElapsedTime() - startingTime - 15).toFixed(2);
         matchState = "solved";
-        socket.emit("solved", playerTime);
-        console.log(matchState);
+        socket.emit("solved", playerTime, playerMoves);
       }
 
       window.requestAnimationFrame(renderLoop);
@@ -178,13 +174,13 @@ function Match({ scramble, onMatchOver }) {
     function handleKeyPress(e) {
       if (matchState == "solving") {
         processMove(e.key, playerCube, playerMoveQueue);
-        socket.emit("move", e.key);
+        socket.emit("move", e.key, ++clientOffset);
       } else if (
         matchState == "inspecting" &&
         !"ikedjfslhgwo56x.".includes(e.key)
       ) {
         processMove(e.key, playerCube, playerMoveQueue);
-        socket.emit("move", e.key);
+        socket.emit("move", e.key, ++clientOffset);
       }
     }
 
@@ -205,11 +201,18 @@ function Match({ scramble, onMatchOver }) {
 
     socket.on("opponent move", onOpponentMove);
 
-    socket.on("opponent done", onOpponentDone);
+    // socket.on("opponent done", onOpponentDone);
 
     socket.on("match over", recieveMatchOver);
 
-    function recieveMatchOver() {
+    function recieveMatchOver(match) {
+      playerTime = match[socket.auth.playerId].time;
+      opponentTime =
+        match[match.players.find((id) => id != socket.auth.playerId)].time;
+      // playerMoveCount = match[socket.auth.playerId].moves.length;
+      // opponentMoveCount =
+      //   match[match.players.find((id) => id != socket.auth.playerId)].moves
+      //     .length;
       setTimeout(() => {
         onMatchOver(
           playerTime,
@@ -227,15 +230,15 @@ function Match({ scramble, onMatchOver }) {
       processMove(key, opponentCube, opponentMoveQueue);
     }
 
-    function onOpponentDone(time) {
-      opponentTime = time;
-    }
+    // function onOpponentDone(time) {
+    //   opponentTime = time;
+    // }
 
     return () => {
       document.removeEventListener("keydown", handleKeyPress);
       window.removeEventListener("resize", onResize);
       socket.off("opponent move", onOpponentMove);
-      socket.off("opponent done", onOpponentDone);
+      // socket.off("opponent done", onOpponentDone);
       socket.off("match over", recieveMatchOver);
       rendering = false;
     };
