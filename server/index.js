@@ -125,7 +125,7 @@ io.on("connection", (socket) => {
 
   socket.on("cancel queue", (callback) => {
     if (
-      (socket.auth.handshake.playerId = matchingPlayer.auth.handshake.playerId)
+      socket.auth.handshake.playerId == matchingPlayer.auth.handshake.playerId
     ) {
       matchingPlayer = null;
     }

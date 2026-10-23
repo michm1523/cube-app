@@ -5,7 +5,7 @@ import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 
 const SIZE = 8;
 const GAP = 1.25;
-const TPS = 3;
+const TPS = 20;
 
 const whiteMaterial = new THREE.MeshBasicMaterial({
   color: "white",
