@@ -163,7 +163,7 @@ function Match({ scramble, onMatchOver }) {
         playerMoveQueue = [];
         playerTime = (clock.getElapsedTime() - startingTime - 15).toFixed(2);
         matchState = "solved";
-        socket.emit("solved", playerTime, playerMoves);
+        socket.emit("solved", playerTime, playerMoveCount);
       }
 
       window.requestAnimationFrame(renderLoop);
@@ -210,9 +210,8 @@ function Match({ scramble, onMatchOver }) {
       opponentTime =
         match[match.players.find((id) => id != socket.auth.playerId)].time;
       // playerMoveCount = match[socket.auth.playerId].moves.length;
-      // opponentMoveCount =
-      //   match[match.players.find((id) => id != socket.auth.playerId)].moves
-      //     .length;
+      opponentMoveCount =
+        match[match.players.find((id) => id != socket.auth.playerId)].moveCount;
       setTimeout(() => {
         onMatchOver(
           playerTime,

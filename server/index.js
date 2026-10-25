@@ -98,7 +98,7 @@ io.on("connection", (socket) => {
     const match = matches.get(playerId);
     const room = match.room;
     match[playerId].time = time;
-    match[playerId].moves = moves;
+    match[playerId].moveCount = moves;
     match[playerId].solved = true;
     if (match[match.players[0]].solved && match[match.players[1]].solved) {
       io.to(room).emit("match over", match);
