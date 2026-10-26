@@ -14,12 +14,16 @@ function Match({ scramble, onMatchOver }) {
   const playerCanvasRef = useRef(null);
   const opponentCanvasRef = useRef(null);
   const timerRef = useRef(null);
+  const leaveMatchRef = useRef(null);
 
   useEffect(() => {
+    socket.auth.serverOffset = -1;
     playerCube.resetCube();
     opponentCube.resetCube();
     playerCube.scrambleCube(scramble);
     opponentCube.scrambleCube(scramble);
+
+    leaveMatchRef.current.style.display = "none";
 
     const playerScene = new THREE.Scene();
     const playerCamera = new THREE.PerspectiveCamera(65, 1, 0.1, 1000);
@@ -65,9 +69,6 @@ function Match({ scramble, onMatchOver }) {
       (window.innerHeight / 780) * 125,
     );
 
-    // playerRenderer.render(playerScene, playerCamera);
-    // opponentRenderer.render(opponentScene, opponentCamera);
-
     console.log(window.innerHeight);
 
     const clock = new THREE.Clock();
@@ -85,6 +86,7 @@ function Match({ scramble, onMatchOver }) {
     let opponentTime = null;
     let playerTime = null;
     let playerMoveCount = 0;
+    let clientOffset = 0;
     let opponentMoveCount = null;
 
     function renderLoop() {
@@ -115,16 +117,13 @@ function Match({ scramble, onMatchOver }) {
         playerCameraGroup,
         playerCube,
       );
-      const opponentMoves = animate(
-        delta,
-        opponentAnimations,
-        opponentCameraGroup,
-        opponentCube,
-      );
+
+      if (!opponentCube.isSolved() && opponentAnimations.length > 0) {
+        animate(delta, opponentAnimations, opponentCameraGroup, opponentCube);
+      }
 
       if (matchState == "solving" || matchState == "solved") {
         playerMoveCount += playerMoves;
-        opponentMoveCount += opponentMoves;
       }
 
       playerRenderer.render(playerScene, playerCamera);
@@ -162,11 +161,10 @@ function Match({ scramble, onMatchOver }) {
         matchState == "solving"
       ) {
         playerMoveQueue = [];
-        console.log(matchState);
         playerTime = (clock.getElapsedTime() - startingTime - 15).toFixed(2);
         matchState = "solved";
-        socket.emit("solved", playerTime);
-        console.log(matchState);
+        socket.emit("solved", playerTime, playerMoveCount);
+        leaveMatchRef.current.style.display = "block";
       }
 
       window.requestAnimationFrame(renderLoop);
@@ -177,13 +175,13 @@ function Match({ scramble, onMatchOver }) {
     function handleKeyPress(e) {
       if (matchState == "solving") {
         processMove(e.key, playerCube, playerMoveQueue);
-        socket.emit("move", e.key);
+        socket.emit("move", e.key, ++clientOffset);
       } else if (
         matchState == "inspecting" &&
         !"ikedjfslhgwo56x.".includes(e.key)
       ) {
         processMove(e.key, playerCube, playerMoveQueue);
-        socket.emit("move", e.key);
+        socket.emit("move", e.key, ++clientOffset);
       }
     }
 
@@ -204,11 +202,14 @@ function Match({ scramble, onMatchOver }) {
 
     socket.on("opponent move", onOpponentMove);
 
-    socket.on("opponent done", onOpponentDone);
-
     socket.on("match over", recieveMatchOver);
 
-    function recieveMatchOver() {
+    function recieveMatchOver(match) {
+      playerTime = match[socket.auth.playerId].time;
+      opponentTime =
+        match[match.players.find((id) => id != socket.auth.playerId)].time;
+      opponentMoveCount =
+        match[match.players.find((id) => id != socket.auth.playerId)].moveCount;
       setTimeout(() => {
         onMatchOver(
           playerTime,
@@ -221,26 +222,29 @@ function Match({ scramble, onMatchOver }) {
       socket.emit("leave match");
     }
 
+    leaveMatchRef.current.addEventListener("click", () => {
+      socket.emit("leave match");
+      onMatchOver(playerTime, opponentTime, playerMoveCount, opponentMoveCount);
+    });
+
     function onOpponentMove(key) {
+      socket.auth.serverOffset++;
       processMove(key, opponentCube, opponentMoveQueue);
     }
 
-    function onOpponentDone(time) {
-      opponentTime = time;
-      if (matchState == "solved") {
-        socket.emit("match over");
-      }
-    }
+    // function onOpponentDone(time) {
+    //   opponentTime = time;
+    // }
 
     return () => {
       document.removeEventListener("keydown", handleKeyPress);
       window.removeEventListener("resize", onResize);
       socket.off("opponent move", onOpponentMove);
-      socket.off("opponent done", onOpponentDone);
+      // socket.off("opponent done", onOpponentDone);
       socket.off("match over", recieveMatchOver);
       rendering = false;
     };
-  });
+  }, []);
 
   return (
     <>
@@ -251,6 +255,7 @@ function Match({ scramble, onMatchOver }) {
           <p class="match-timer" ref={timerRef}>
             11
           </p>
+          <button ref={leaveMatchRef}>Leave Match</button>
         </div>
       </div>
     </>
