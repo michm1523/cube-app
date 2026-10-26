@@ -20,17 +20,19 @@ function MatchOverview({
         <tr>
           <th>Time</th>
           <td>{playerTime}</td>
-          <td>{opponentTime}</td>
+          <td>{opponentTime ? opponentTime : "-"}</td>
         </tr>
         <tr>
           <th>Moves</th>
           <td>{playerMoveCount}</td>
-          <td>{opponentMoveCount}</td>
+          <td>{opponentMoveCount ? opponentMoveCount : "-"}</td>
         </tr>
         <tr>
           <th>TPS</th>
           <td>{(playerMoveCount / playerTime).toFixed(1)}</td>
-          <td>{(opponentMoveCount / opponentTime).toFixed(1)}</td>
+          <td>
+            {opponentTime ? (opponentMoveCount / opponentTime).toFixed(1) : "-"}
+          </td>
         </tr>
       </table>
 

@@ -14,6 +14,7 @@ function Match({ scramble, onMatchOver }) {
   const playerCanvasRef = useRef(null);
   const opponentCanvasRef = useRef(null);
   const timerRef = useRef(null);
+  const leaveMatchRef = useRef(null);
 
   useEffect(() => {
     socket.auth.serverOffset = -1;
@@ -21,6 +22,8 @@ function Match({ scramble, onMatchOver }) {
     opponentCube.resetCube();
     playerCube.scrambleCube(scramble);
     opponentCube.scrambleCube(scramble);
+
+    leaveMatchRef.current.style.display = "none";
 
     const playerScene = new THREE.Scene();
     const playerCamera = new THREE.PerspectiveCamera(65, 1, 0.1, 1000);
@@ -65,9 +68,6 @@ function Match({ scramble, onMatchOver }) {
       (window.innerHeight / 780) * 500,
       (window.innerHeight / 780) * 125,
     );
-
-    // playerRenderer.render(playerScene, playerCamera);
-    // opponentRenderer.render(opponentScene, opponentCamera);
 
     console.log(window.innerHeight);
 
@@ -164,6 +164,7 @@ function Match({ scramble, onMatchOver }) {
         playerTime = (clock.getElapsedTime() - startingTime - 15).toFixed(2);
         matchState = "solved";
         socket.emit("solved", playerTime, playerMoveCount);
+        leaveMatchRef.current.style.display = "block";
       }
 
       window.requestAnimationFrame(renderLoop);
@@ -201,15 +202,12 @@ function Match({ scramble, onMatchOver }) {
 
     socket.on("opponent move", onOpponentMove);
 
-    // socket.on("opponent done", onOpponentDone);
-
     socket.on("match over", recieveMatchOver);
 
     function recieveMatchOver(match) {
       playerTime = match[socket.auth.playerId].time;
       opponentTime =
         match[match.players.find((id) => id != socket.auth.playerId)].time;
-      // playerMoveCount = match[socket.auth.playerId].moves.length;
       opponentMoveCount =
         match[match.players.find((id) => id != socket.auth.playerId)].moveCount;
       setTimeout(() => {
@@ -223,6 +221,11 @@ function Match({ scramble, onMatchOver }) {
 
       socket.emit("leave match");
     }
+
+    leaveMatchRef.current.addEventListener("click", () => {
+      socket.emit("leave match");
+      onMatchOver(playerTime, opponentTime, playerMoveCount, opponentMoveCount);
+    });
 
     function onOpponentMove(key) {
       socket.auth.serverOffset++;
@@ -252,6 +255,7 @@ function Match({ scramble, onMatchOver }) {
           <p class="match-timer" ref={timerRef}>
             11
           </p>
+          <button ref={leaveMatchRef}>Leave Match</button>
         </div>
       </div>
     </>
